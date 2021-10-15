@@ -1,8 +1,7 @@
 {
-  "name": "multiverse-tasks",
+  "name": "mv-scooter-hire",
   "version": "1.0.0",
-  "description": "Directories containing tasks for multiverse bootcamp",
-  "main": "index.js",
+  "description": "E-scooter hire task for multiverse",
   "dependencies": {
     "colors": "^1.4.0",
     "prompt-sync": "^4.2.0"
@@ -32,12 +31,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BokChoyWarrior/multiverse-tasks.git"
+    "url": "git+https://github.com/BokChoyWarrior/mv-scooter-hire.git"
   },
   "author": "Harvey Cambridge",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/BokChoyWarrior/multiverse-tasks/issues"
+    "url": "https://github.com/BokChoyWarrior/mv-scooter-hire/issues"
   },
-  "homepage": "https://github.com/BokChoyWarrior/multiverse-tasks#readme"
+  "homepage": "https://github.com/BokChoyWarrior/mv-scooter-hire#readme"
 }
