@@ -1,41 +1,6 @@
 import { Scooter } from '../src/Scooter';
 
-// jest.useFakeTimers('modern');
-jest.setTimeout(0);
-// Example environment for testing purposes
-function setupMockEnvironment(): { scooters: Scooter[]; users: string[] } {
-  const mockValues = {
-    scooters: [new Scooter()],
-    users: ['123'],
-  };
-
-  return mockValues;
-}
-
-describe('the AppUser class', () => {
-  let scooters: Scooter[], users: string[];
-
-  beforeEach(() => {
-    return ({ scooters, users } = setupMockEnvironment());
-  });
-
-  test('instantiation', () => {
-    expect(scooters[0].id).toBe(0);
-    const newScooter = new Scooter();
-    expect(newScooter.id).toBe(1);
-    expect(scooters[0].isHired).toBe(false);
-  });
-
-  test('the user can register', () => {});
-});
-
 describe('the Scooter class', () => {
-  let scooters: Scooter[], users: string[];
-
-  beforeEach(() => {
-    return ({ scooters, users } = setupMockEnvironment());
-  });
-
   it('should charge properly', () => {
     const scooter = new Scooter();
     expect(scooter.batteryLevel).toBe(100);
@@ -87,7 +52,22 @@ describe('the Scooter class', () => {
       .catch();
   });
 
-  it('should set itself available when charged and fixed', () => {});
-});
+  it('should set itself available when charged and fixed', async () => {
+    let scooterAlerter = new Scooter();
+    scooterAlerter.isBroken = true;
+    scooterAlerter.batteryLevel = 0;
 
-describe('the ChargingStation class', () => {});
+    // Assign an event listener for the scooter to tell us when it's available
+    scooterAlerter.once('available', () => {
+      expect(!!scooterAlerter.batteryLevel && !scooterAlerter.isBroken).toBe(true);
+      expect(scooterAlerter.isAvailable).toBe(true);
+    });
+
+    // Make sure scooter unavailable
+    expect(scooterAlerter.isAvailable).toBe(false);
+    let p1 = scooterAlerter.fix();
+    let p2 = scooterAlerter.charge();
+    // Once both these promises resolve, the event should have already fired and called callback above, so test should pass.
+    await Promise.all([p1, p2]);
+  });
+});

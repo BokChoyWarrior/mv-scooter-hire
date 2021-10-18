@@ -1,8 +1,9 @@
-import { Scooter } from './Scooter';
 import { DockingStation } from './DockingStation';
+import { Location } from './Location';
+import { Scooter } from './Scooter';
 
 const scooter = new Scooter();
-const station = new DockingStation();
+const station = new DockingStation(new Location());
 
 scooter.batteryLevel = 1;
 station.dock(scooter);

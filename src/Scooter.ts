@@ -1,20 +1,30 @@
 import { EventEmitter } from 'node:events';
-export class Scooter extends EventEmitter {
+
+import { Location } from './Location';
+
+export class Scooter {
   // Extend eventEmitter so that DockingStation can listen to events rather than loop through scooters
   // Static
   static all: Scooter[] = [];
   static allAvailable: Scooter[] = [];
 
+  static removeAll() {
+    Scooter.all = [];
+  }
+
   // Public
   public id: number = Scooter.all.length;
-  public isHired: boolean = false;
-  public isAvailable: boolean = true;
+  public location: Location = new Location();
 
   // Private
   private _batteryLevel: number = 100;
   private _isBroken: boolean = false;
   private _isBeingFixed: boolean = false;
   private _isCharging: boolean = false;
+  private _isHired: boolean = false;
+  public _isAvailable: boolean = true;
+
+  private _emitter: EventEmitter = new EventEmitter();
   // Note: Here we create two fulfilled promises so that we can track the active fixes or charge task
   // When a scooter begins charging, we update this value so that if charge() or fix() are called again,
   // we can see there is an active promise and return that to the callee in order to be notified when
@@ -24,8 +34,20 @@ export class Scooter extends EventEmitter {
 
   // Constructor
   constructor() {
-    super();
     Scooter.all.push(this);
+  }
+
+  // Proxies for emitter
+  emit(event: string) {
+    this._emitter.emit(event);
+  }
+
+  on(eventName: string | symbol, listener: (...args: any[]) => void) {
+    this._emitter.on(eventName, listener);
+  }
+
+  once(eventName: string | symbol, listener: (...args: any[]) => void) {
+    this._emitter.on(eventName, listener);
   }
 
   // Getters + setters
@@ -53,14 +75,30 @@ export class Scooter extends EventEmitter {
     this.updateAvailability();
   }
 
+  get isHired() {
+    return this._isHired;
+  }
+
+  set isHired(hired: boolean) {
+    this._isHired = hired;
+    this.updateAvailability();
+  }
+
+  get isAvailable() {
+    return this._isAvailable;
+  }
+
+  set isAvailable(available: boolean) {
+    this._isAvailable = available;
+    available ? this.emit('available') : this.emit('unavailable');
+  }
+
   // Methods
   updateAvailability() {
-    if (this.isBroken || this.batteryLevel !== 100) {
+    if (this.isHired || this.isBroken || this.batteryLevel !== 100) {
       this.isAvailable = false;
-      this.emit('unavailable');
     } else {
       this.isAvailable = true;
-      this.emit('available');
     }
   }
 
