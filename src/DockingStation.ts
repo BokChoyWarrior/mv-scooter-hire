@@ -1,5 +1,4 @@
 import { Scooter } from './Scooter';
-import { AppUser } from './AppUser';
 
 export class DockingStation {
   scooters: { [key: string]: Scooter } = {};

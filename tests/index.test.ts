@@ -1,6 +1,7 @@
-import { Scooter } from './Scooter';
+import { Scooter } from '../src/Scooter';
+
 // jest.useFakeTimers('modern');
-jest.setTimeout(10000);
+jest.setTimeout(0);
 // Example environment for testing purposes
 function setupMockEnvironment(): { scooters: Scooter[]; users: string[] } {
   const mockValues = {
@@ -48,7 +49,8 @@ describe('the Scooter class', () => {
     expect(promiseA).toBe(promiseB); // We use toBe() to check reference, not value
 
     // WORKS
-    return promiseA
+    return scooter
+      .charge()
       .then(() => {
         expect(scooter.batteryLevel).toBe(100);
         expect(scooter.isAvailable).toBe(true);
@@ -76,7 +78,8 @@ describe('the Scooter class', () => {
     const promiseB = scooter.fix();
     expect(promiseA).toBe(promiseB);
 
-    return promiseA
+    return scooter
+      .fix()
       .then(() => {
         expect(scooter.isBroken).toBe(false);
         expect(scooter.isAvailable).toBe(true);
