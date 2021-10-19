@@ -13,18 +13,18 @@ export class Scooter {
   }
 
   // Public
-  public id: number = Scooter.all.length;
-  public location: Location = new Location();
+  public id = Scooter.all.length;
+  public location = new Location();
 
   // Private
-  private _batteryLevel: number = 100;
-  private _isBroken: boolean = false;
-  private _isBeingFixed: boolean = false;
-  private _isCharging: boolean = false;
-  private _isHired: boolean = false;
-  public _isAvailable: boolean = true;
+  private _batteryLevel = 100;
+  private _isBroken = false;
+  private _isBeingFixed = false;
+  private _isCharging = false;
+  private _isHired = false;
+  public _isAvailable = true;
 
-  private _emitter: EventEmitter = new EventEmitter();
+  private _emitter = new EventEmitter();
   // Note: Here we create two fulfilled promises so that we can track the active fixes or charge task
   // When a scooter begins charging, we update this value so that if charge() or fix() are called again,
   // we can see there is an active promise and return that to the callee in order to be notified when
@@ -51,11 +51,11 @@ export class Scooter {
   }
 
   // Getters + setters
-  get isBroken(): boolean {
+  get isBroken() {
     return this._isBroken;
   }
 
-  set isBroken(broken: boolean) {
+  set isBroken(broken) {
     this._isBroken = broken;
     if (!broken) {
       this._isBeingFixed = false;
@@ -63,11 +63,11 @@ export class Scooter {
     this.updateAvailability();
   }
 
-  get batteryLevel(): number {
+  get batteryLevel() {
     return this._batteryLevel;
   }
 
-  set batteryLevel(level: number) {
+  set batteryLevel(level) {
     this._batteryLevel = level;
     if (level === 100) {
       this._isCharging = false;
@@ -79,7 +79,7 @@ export class Scooter {
     return this._isHired;
   }
 
-  set isHired(hired: boolean) {
+  set isHired(hired) {
     this._isHired = hired;
     this.updateAvailability();
   }
@@ -88,7 +88,7 @@ export class Scooter {
     return this._isAvailable;
   }
 
-  set isAvailable(available: boolean) {
+  set isAvailable(available) {
     this._isAvailable = available;
     available ? this.emit('available') : this.emit('unavailable');
   }

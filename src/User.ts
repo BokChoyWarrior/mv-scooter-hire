@@ -11,11 +11,11 @@ export class User {
   }
 
   // Private
-  private age: number;
-  private name: string;
+  private age;
+  private name;
 
   // Public
-  public location: Location;
+  public location;
 
   constructor(name: string, age: number, location: Location) {
     this.name = name;

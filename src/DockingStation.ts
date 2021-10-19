@@ -50,7 +50,7 @@ export class DockingStation {
   }
 
   // Getters + setters
-  get numAvailableScooters(): number {
+  get numAvailableScooters() {
     let num = 0;
     for (let scooter in this.availableScooters) {
       num += 1;
