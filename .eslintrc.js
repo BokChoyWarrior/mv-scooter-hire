@@ -9,6 +9,7 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:import/typescript',
+    'plugin:jest/recommended',
   ],
   globals: {
     Atomics: 'readonly',
@@ -17,9 +18,11 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2018,
+    project: ["./tsconfig.json"]
   },
   plugins: [
     '@typescript-eslint',
+    'jest',
   ],
   rules: {
   },
