@@ -15,6 +15,9 @@ export class Scooter {
   // Public
   public id = Scooter.all.length;
   public location = new Location();
+  public batteryDischargeRate = 50;
+
+  // Protected
 
   // Private
   private _batteryLevel = 100;
@@ -135,8 +138,12 @@ export class Scooter {
     return this._fixingPromise;
   }
 
-  // Recursive promise which removes some battery level while the scooter is hired
+  /**
+   *
+   *  Recursive promise which removes some battery level while the scooter is hired
+   */
   async discharge() {
+    const interval = (1000 / this.batteryDischargeRate) * 5;
     const dischargeBy5 = async () => {
       if (this.isHired) {
         await setTimeout(() => {
@@ -144,7 +151,7 @@ export class Scooter {
             this.batteryLevel -= 5;
             dischargeBy5();
           }
-        }, 100);
+        }, interval);
       }
     };
     dischargeBy5();

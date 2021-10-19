@@ -90,4 +90,25 @@ describe('the User (and Person) class', () => {
     const nearest = user.findNearestAvailableStation();
     expect(nearest).toBe(false);
   });
+
+  it("the user cannot dock a scooter if they don't have one", () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    const user = new User('test', 48930242, new Location());
+
+    expect(() => user.dock(station)).toThrowError();
+  });
+
+  it('the user cannot hire from a station with no scooters', () => {
+    const station = new DockingStation(new Location());
+    const user = new User('test', 48930242, new Location());
+
+    expect(() => user.hireFrom(station)).toThrowError();
+  });
+
+  it("the user can't mark scooter as broken if they haven't hired one yet!", () => {
+    const user = new User('test', 48930242, new Location());
+
+    expect(() => user.markPrevScooterBroken()).toThrowError();
+  });
 });

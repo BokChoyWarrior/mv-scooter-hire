@@ -24,8 +24,8 @@
   "scripts": {
     "build": "tsc",
     "test": "jest /*.test.ts",
-    "coverage": "jest --coverage /*.test.ts",
-    "jest-watch": "jest --watch /*test.ts",
+    "coverage": "jest --coverage ./tests/*.test.ts",
+    "jest-watch": "jest --watch ./tests/*.test.ts",
     "tsc-watch": "tsc --watch",
     "coverage-host": "python3 -m http.server -d ./coverage/lcov-report 5000"
   },

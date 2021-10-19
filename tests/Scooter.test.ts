@@ -107,4 +107,17 @@ describe('the Scooter class', () => {
     await new Promise(res => setTimeout(res, 2000));
     expect(scooter.batteryLevel).toBe(100);
   });
+
+  test('the scooter should not pass 0 battery level', async () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    station.dock(s1);
+    const user = new User('test', 48930242, new Location());
+
+    s1.batteryDischargeRate = 1000;
+    user.hireFrom(station);
+    await new Promise(res => setTimeout(res, 500));
+
+    expect(s1.batteryLevel).toBe(0);
+  });
 });
