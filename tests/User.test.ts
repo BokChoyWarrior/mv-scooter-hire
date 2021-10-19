@@ -28,10 +28,8 @@ describe('the User (and Person) class', () => {
   it('the user can hire/dock a scooter', async () => {
     const station = new DockingStation(new Location());
     const s1 = new Scooter();
-    const s2 = new Scooter();
     const user = new User('1', 100, new Location());
     station.dock(s1);
-    station.dock(s2);
 
     const nearest = user.findNearestAvailableStation();
     // console.log(nearest);
