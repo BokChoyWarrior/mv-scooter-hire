@@ -115,23 +115,19 @@ export class DockingStation {
     if (user.balance <= 0) {
       throw new Error('Insufficient balance');
     }
-    try {
-      if (this.numAvailableScooters > 0) {
-        // Choose a random scooter from availableScooters
-        let scooterId;
-        const Ids = Object.keys(this.availableScooters);
-        scooterId = Ids[(Ids.length * Math.random()) << 0];
-
-        const scooter = this.availableScooters[scooterId];
-        this._assign(scooter, user);
-        scooter.isHired = true;
-        return scooter;
-      } else {
-        throw new Error('The station selected has no available scooters');
-      }
-    } catch (e) {
-      throw e;
+    if (this.numAvailableScooters > 0) {
+      throw new Error('The station selected has no available scooters');
     }
+
+    // Choose a random scooter from availableScooters
+    let scooterId;
+    const Ids = Object.keys(this.availableScooters);
+    scooterId = Ids[(Ids.length * Math.random()) << 0];
+
+    const scooter = this.availableScooters[scooterId];
+    this._assign(scooter, user);
+    scooter.isHired = true;
+    return scooter;
   }
 
   private _assign(scooter: Scooter, user: User) {
