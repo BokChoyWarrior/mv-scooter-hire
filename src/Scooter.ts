@@ -81,6 +81,7 @@ export class Scooter {
 
   set isHired(hired) {
     this._isHired = hired;
+    this.discharge();
     this.updateAvailability();
   }
 
@@ -133,6 +134,22 @@ export class Scooter {
     }
     return this._fixingPromise;
   }
+
+  // Recursive promise which removes some battery level while the scooter is hired
+  async discharge() {
+    const dischargeBy5 = async () => {
+      if (this.isHired) {
+        await setTimeout(() => {
+          if (this.batteryLevel > 1) {
+            this.batteryLevel -= 5;
+            dischargeBy5();
+          }
+        }, 100);
+      }
+    };
+    dischargeBy5();
+  }
+
   // async fix() {
   //   this._isBeingFixed = true;
   //   await new Promise(res => setTimeout(res, Math.random() * 5000));

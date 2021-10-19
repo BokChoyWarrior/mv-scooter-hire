@@ -9,8 +9,9 @@ export class DockingStation {
     DockingStation.all = [];
   }
 
-  // This function finds the closest station to a user with available scooters
-  // We could set up a listener for whether the station runs out of scooters, but I will consider that out of scope
+  /**
+   * Does what it says on the tin!
+   */
   public static findNearestDockWithAvailableScooter(user: User): DockingStation | false {
     const userLoc = user.location;
 
@@ -59,9 +60,38 @@ export class DockingStation {
   }
 
   // Methods
-  dock(scooter: Scooter) {
+  /**
+   * Automatically decides what to do whether supplied argument is a `User` or `Scooter`
+   *
+   * @param thing
+   */
+  dock(thing: User | Scooter) {
+    if (thing instanceof User) {
+      this._userDock(thing);
+    } else {
+      this._scooterDock(thing);
+    }
+  }
+  _userDock(user: User) {
+    if (!user.scooter) {
+      throw new Error("scooter not given - maybe the user doesn't have one assigned?");
+    }
+    const batteryUsed = 100 - user.scooter.batteryLevel;
+    this._scooterDock(user.scooter);
+    // TODO
+    // this.takePayment(user, batteryUsed)
+
+    user.previousScooter = user.scooter;
+    user.scooter = false;
+
+    user.takePayment(batteryUsed);
+  }
+
+  _scooterDock(scooter: Scooter) {
     // add scooter to list of scooters
     this.scooters[scooter.id] = scooter;
+    scooter.isHired = false;
+    scooter.charge();
     if (scooter.isAvailable) {
       this.availableScooters[scooter.id] = scooter;
     }
@@ -81,7 +111,32 @@ export class DockingStation {
     this.listeners[scooter.id] = [availableListener, unavailableListener];
   }
 
-  assign(scooter: Scooter, user: User) {
+  hire(user: User): Scooter {
+    if (user.balance <= 0) {
+      throw new Error('Insufficient balance');
+    }
+    try {
+      if (this.numAvailableScooters > 0) {
+        // Choose a random scooter from availableScooters
+        let scooterId;
+        const Ids = Object.keys(this.availableScooters);
+        scooterId = Ids[(Ids.length * Math.random()) << 0];
+
+        const scooter = this.availableScooters[scooterId];
+        this._assign(scooter, user);
+        scooter.isHired = true;
+        return scooter;
+      } else {
+        throw new Error('The station selected has no available scooters');
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private _assign(scooter: Scooter, user: User) {
     delete this.scooters[scooter.id];
+    delete this.availableScooters[scooter.id];
+    user.scooter = scooter;
   }
 }

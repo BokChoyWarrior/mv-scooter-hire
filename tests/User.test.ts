@@ -2,13 +2,15 @@ import { setupMockEnvironment, teardownMockEnvironment } from '.';
 import { Location } from '../src/Location';
 import { Person } from '../src/Person';
 import { User } from '../src/User';
+import { DockingStation } from '../src/DockingStation';
+import { Scooter } from '../src/Scooter';
 
 let users, scooters, stations;
 
 describe('the User (and Person) class', () => {
-  beforeEach(() => {
-    return ({ scooters, users, stations } = setupMockEnvironment());
-  });
+  // beforeEach(() => {
+  //   return ({ scooters, users, stations } = setupMockEnvironment());
+  // });
 
   afterEach(teardownMockEnvironment);
 
@@ -23,11 +25,71 @@ describe('the User (and Person) class', () => {
     expect(() => underage.register()).toThrowError();
   });
 
-  it.todo('The user can add payment details');
+  it('the user can hire/dock a scooter', async () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    const s2 = new Scooter();
+    const user = new User('1', 100, new Location());
+    station.dock(s1);
+    station.dock(s2);
 
-  it.todo('the user can hire a scooter');
+    const nearest = user.findNearestAvailableStation();
+    // console.log(nearest);
+    expect(nearest).toBe(station);
 
-  it.todo("the user can return the scooter to a station, and money will be taken form user's account");
+    let scooter: Scooter;
 
-  it.todo('the user can mark a scooter as broken, and can contact team to get a refund');
+    if (!nearest) {
+      return;
+    }
+
+    // Testing discharging
+    scooter = user.hireFrom(nearest);
+
+    expect(scooter.batteryLevel).toBe(100);
+
+    //wait 0.2 secs (or 0.2 hours)
+    await new Promise(res => setTimeout(res, 200));
+    expect(scooter.batteryLevel).toBeLessThan(100);
+    nearest.dock(user);
+  });
+
+  it("the user can return the scooter to a station, and money will be taken form user's account", async () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    station.dock(s1);
+    const user = new User('test', 48930242, new Location());
+
+    const prevBalance = user.balance;
+    user.hireFrom(station);
+    await new Promise(res => setTimeout(res, 200));
+    user.dock(station);
+
+    expect(user.balance).toBeLessThan(prevBalance);
+  });
+
+  it('the user cannot hire if they have no balance', () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    station.dock(s1);
+    const user = new User('test', 48930242, new Location(), 0);
+
+    expect(() => user.hireFrom(station)).toThrow();
+  });
+
+  it('the user can mark a scooter as broken, (and can contact team to get a refund NYI)', () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    station.dock(s1);
+    const user = new User('test', 48930242, new Location());
+
+    user.hireFrom(station);
+
+    user.dock(station);
+
+    user.markPrevScooterBroken();
+
+    const nearest = user.findNearestAvailableStation();
+    expect(nearest).toBe(false);
+  });
 });

@@ -1,6 +1,12 @@
 import { Scooter } from '../src/Scooter';
+import { DockingStation } from '../src/DockingStation';
+import { User } from '../src/User';
+import { Location } from '../src/Location';
+import { teardownMockEnvironment } from '.';
 
 describe('the Scooter class', () => {
+  afterEach(teardownMockEnvironment);
+
   it('should charge properly', () => {
     const scooter = new Scooter();
     expect(scooter.batteryLevel).toBe(100);
@@ -69,5 +75,36 @@ describe('the Scooter class', () => {
     let p2 = scooterAlerter.charge();
     // Once both these promises resolve, the event should have already fired and called callback above, so test should pass.
     await Promise.all([p1, p2]);
+  });
+
+  it('should discharge while hired, and charge when docked', async () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    const user = new User('1', 100, new Location());
+    station.dock(s1);
+
+    const nearest = user.findNearestAvailableStation();
+    // console.log(nearest);
+    expect(nearest).toBe(station);
+
+    let scooter: Scooter;
+
+    if (!nearest) {
+      return;
+    }
+
+    // Testing discharging
+    scooter = user.hireFrom(nearest);
+
+    expect(scooter.batteryLevel).toBe(100);
+
+    //wait 0.2 secs (or 0.2 hours)
+    await new Promise(res => setTimeout(res, 200));
+    expect(scooter.batteryLevel).toBeLessThan(100);
+    nearest.dock(user);
+
+    // wait for charge
+    await new Promise(res => setTimeout(res, 2000));
+    expect(scooter.batteryLevel).toBe(100);
   });
 });
