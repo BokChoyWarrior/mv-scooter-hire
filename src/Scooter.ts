@@ -1,12 +1,8 @@
 import { EventEmitter } from 'node:events';
 
-import { Location } from './Location';
-
 export class Scooter {
-  // Extend eventEmitter so that DockingStation can listen to events rather than loop through scooters
   // Static
   static all: Scooter[] = [];
-  static allAvailable: Scooter[] = [];
 
   static removeAll() {
     Scooter.all = [];
@@ -14,10 +10,7 @@ export class Scooter {
 
   // Public
   public id = Scooter.all.length;
-  public location = new Location();
   public batteryDischargeRate = 50;
-
-  // Protected
 
   // Private
   private _batteryLevel = 100;
