@@ -115,7 +115,7 @@ export class DockingStation {
     if (user.balance <= 0) {
       throw new Error('Insufficient balance');
     }
-    if (this.numAvailableScooters > 0) {
+    if (this.numAvailableScooters === 0) {
       throw new Error('The station selected has no available scooters');
     }
 
