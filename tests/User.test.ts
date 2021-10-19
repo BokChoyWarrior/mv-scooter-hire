@@ -1,4 +1,3 @@
-import { setupMockEnvironment, teardownMockEnvironment } from '.';
 import { Location } from '../src/Location';
 import { Person } from '../src/Person';
 import { User } from '../src/User';
@@ -6,6 +5,12 @@ import { DockingStation } from '../src/DockingStation';
 import { Scooter } from '../src/Scooter';
 
 let users, scooters, stations;
+
+function teardownMockEnvironment() {
+  Scooter.removeAll();
+  User.removeAll();
+  DockingStation.removeAll();
+}
 
 describe('the User (and Person) class', () => {
   // beforeEach(() => {

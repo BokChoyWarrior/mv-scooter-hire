@@ -2,7 +2,12 @@ import { Scooter } from '../src/Scooter';
 import { DockingStation } from '../src/DockingStation';
 import { User } from '../src/User';
 import { Location } from '../src/Location';
-import { teardownMockEnvironment } from '.';
+
+function teardownMockEnvironment() {
+  Scooter.removeAll();
+  User.removeAll();
+  DockingStation.removeAll();
+}
 
 describe('the Scooter class', () => {
   afterEach(teardownMockEnvironment);
