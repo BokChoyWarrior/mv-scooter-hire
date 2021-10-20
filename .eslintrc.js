@@ -18,12 +18,14 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2018,
-    // project: ["./tsconfig.json"]
+    project: ["./tsconfig.json"]
   },
   plugins: [
     '@typescript-eslint',
     'jest',
   ],
   rules: {
+    "react/jsx-filename-extension": "off",
+    "no-underscore-dangle": "off"
   },
 };
