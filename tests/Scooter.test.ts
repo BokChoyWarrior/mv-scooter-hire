@@ -1,7 +1,8 @@
-import { Scooter } from '../src/Scooter';
-import { DockingStation } from '../src/DockingStation';
-import { User } from '../src/User';
-import { Location } from '../src/Location';
+import Scooter from '../src/Scooter';
+import DockingStation from '../src/DockingStation';
+import User from '../src/User';
+import Location from '../src/Location';
+
 function teardownMockEnvironment() {
   Scooter.removeAll();
   User.removeAll();
@@ -29,15 +30,11 @@ describe('the Scooter class', () => {
     const promiseB = scooter.charge();
     expect(promiseA).toBe(promiseB); // We use toBe() to check reference, not value
 
-    const promise = scooter
-      .charge()
-      .then(() => {
-        expect(scooter.batteryPercent).toBe(100);
-        expect(scooter.isAvailable).toBe(true);
-      })
-      .catch();
+    const promise = scooter.charge();
 
     jest.advanceTimersByTime(10000);
+    expect(scooter.batteryPercent).toBe(100);
+    expect(scooter.isAvailable).toBe(true);
     return promise;
   });
 
@@ -56,14 +53,10 @@ describe('the Scooter class', () => {
     const promiseB = scooter.fix();
     expect(promiseA).toBe(promiseB);
 
-    const promise = scooter
-      .fix()
-      .then(() => {
-        expect(scooter.isBroken).toBe(false);
-        expect(scooter.isAvailable).toBe(true);
-      })
-      .catch();
+    const promise = scooter.fix();
     jest.runAllTimers();
+    expect(scooter.isBroken).toBe(false);
+    expect(scooter.isAvailable).toBe(true);
     return promise;
   });
 
@@ -85,9 +78,10 @@ describe('the Scooter class', () => {
     });
 
     // Make sure scooter unavailable
-    let p1 = scooter.fix();
-    let p2 = scooter.charge();
-    // Once both these promises resolve, the event should have already fired and called callback above, so test should pass.
+    const p1 = scooter.fix();
+    const p2 = scooter.charge();
+    // Once both these promises resolve, the event should have already fired and
+    // called callback above, so test should pass.
     const promise = Promise.all([p1, p2]);
     jest.advanceTimersByTime(5000);
 
@@ -99,8 +93,6 @@ describe('the Scooter class', () => {
   it('should charge while docked', () => {
     const station = new DockingStation(new Location());
     const scooter = new Scooter();
-    const user = new User('1', 100, new Location());
-
     scooter.batteryPercent = 1;
 
     jest.advanceTimersByTime(1000);

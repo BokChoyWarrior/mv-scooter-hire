@@ -1,10 +1,13 @@
-import { Location } from './Location';
-import { User } from './User';
+import Location from './Location';
+import User from './User';
 
-export class Person {
+export default class Person {
   name;
+
   age;
+
   location;
+
   constructor(name: string, age: number, location: Location) {
     this.name = name;
     this.age = age;

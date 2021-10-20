@@ -1,7 +1,7 @@
-import { DockingStation } from '../src/DockingStation';
-import { Location } from '../src/Location';
-import { Scooter } from '../src/Scooter';
-import { User } from '../src/User';
+import DockingStation from '../src/DockingStation';
+import Location from '../src/Location';
+import Scooter from '../src/Scooter';
+import User from '../src/User';
 
 describe('the DockingStation class', () => {
   const dockingStation1 = new DockingStation(new Location(1, 1));

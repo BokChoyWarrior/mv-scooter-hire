@@ -1,10 +1,8 @@
-import { Location } from '../src/Location';
-import { Person } from '../src/Person';
-import { User } from '../src/User';
-import { DockingStation } from '../src/DockingStation';
-import { Scooter } from '../src/Scooter';
-
-let users, scooters, stations;
+import Location from '../src/Location';
+import Person from '../src/Person';
+import User from '../src/User';
+import DockingStation from '../src/DockingStation';
+import Scooter from '../src/Scooter';
 
 function teardownMockEnvironment() {
   Scooter.removeAll();
@@ -23,13 +21,13 @@ describe('the User (and Person) class', () => {
   });
 
   it('the user can register', () => {
-    let person = new Person('harv', 55, new Location());
-    let user = person.register();
+    const person = new Person('harv', 55, new Location());
+    const user = person.register();
     expect(user).toBeInstanceOf(User);
   });
 
   it('underage users cannot register', () => {
-    let underage = new Person('person 2', 5, new Location());
+    const underage = new Person('person 2', 5, new Location());
     expect(() => underage.register()).toThrowError();
   });
 
@@ -42,18 +40,16 @@ describe('the User (and Person) class', () => {
     const nearest = user.findNearestAvailableStation();
     expect(nearest).toBe(station);
 
-    let scooter: Scooter;
-
     if (!nearest) {
       return;
     }
 
     // Testing discharging
-    scooter = user.hireFrom(nearest);
+    const scooter = user.hireFrom(nearest);
 
     expect(scooter.batteryPercent).toBe(100);
 
-    //wait 0.2 secs (or 0.2 hours)
+    // wait 0.2 secs (or 0.2 hours)
     jest.advanceTimersByTime(2000);
     expect(scooter.batteryPercent).toBeLessThan(100);
     nearest.dock(user);
@@ -98,7 +94,6 @@ describe('the User (and Person) class', () => {
 
   it("the user cannot dock a scooter if they don't have one", () => {
     const station = new DockingStation(new Location());
-    const s1 = new Scooter();
     const user = new User('test', 48930242, new Location());
 
     expect(() => user.dock(station, false)).toThrowError();

@@ -1,10 +1,12 @@
-import { Location } from '../src/Location';
-import { DockingStation } from '../src/DockingStation';
-import { Scooter } from '../src/Scooter';
+import Location from './Location';
+import Scooter from './Scooter';
+import DockingStation from './DockingStation';
 
-// DockingStation class will *mostly* act as the "app" and the user will interact with the "app" via DockingStation
-// This should really be all in it's own "App" class, but the proogram is already complicated enough as-is!
-export class User {
+// DockingStation class will *mostly* act as the "app" and the user will
+// interact with the "app" via DockingStation
+// This should really be all in it's own "App" class, but the proogram is already
+// complicated enough as-is!
+export default class User {
   // Statics
   static all: User[] = [];
 
@@ -14,12 +16,16 @@ export class User {
 
   // Private
   private age;
+
   private name;
 
   // Public
   public location;
+
   public scooter: Scooter | false = false;
+
   public previousScooter: Scooter | false = false;
+
   public balance; // pence
 
   constructor(name: string, age: number, location: Location, balance: number = 500) {
@@ -41,10 +47,16 @@ export class User {
 
   dock(station: DockingStation, isBroken: boolean) {
     station.dock(this, isBroken);
+    this.previousScooter = this.scooter;
+    this.scooter = false;
   }
 
   takePayment(batteryUsed: number) {
     this.balance -= batteryUsed * 10;
     return this.balance;
+  }
+
+  assign(scooter: Scooter) {
+    this.scooter = scooter;
   }
 }
