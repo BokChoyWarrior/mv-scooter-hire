@@ -1,4 +1,4 @@
-import Location from '../Location';
+import Location from '../src/Location';
 
 export class User {
   constructor(private messenger: AppMessenger) {}

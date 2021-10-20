@@ -1,4 +1,4 @@
-import Location from '../Location';
+import Location from '../src/Location';
 import { User, AppMessenger } from './User';
 
 export default class App implements AppMessenger {
