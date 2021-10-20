@@ -1,5 +1,8 @@
 ## Notes
 
+**Update**:
+Please check branch `v2` for a better (but unfinished) implementation.
+
 ### What went well:
 
 - I think I used asynchronous JS nicely for the scooter charging and discharging functionality.
