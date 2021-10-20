@@ -1,11 +1,12 @@
 import Location from './Location';
 import Scooter from './Scooter';
-import DockingStation from './DockingStation';
 
-// DockingStation class will *mostly* act as the "app" and the user will
-// interact with the "app" via DockingStation
-// This should really be all in it's own "App" class, but the proogram is already
-// complicated enough as-is!
+export interface AppMessenger {
+  hireFrom(user: User, stationId: number): any;
+
+  findClosestAvailable(location: Location): Location | false;
+}
+
 export default class User {
   // Statics
   static all: User[] = [];
@@ -22,13 +23,19 @@ export default class User {
   // Public
   public location;
 
-  public scooter: Scooter | false = false;
+  public scooterId: number | false = false;
 
-  public previousScooter: Scooter | false = false;
+  public previousScooterId: number | false = false;
 
   public balance; // pence
 
-  constructor(name: string, age: number, location: Location, balance: number = 500) {
+  constructor(
+    name: string,
+    age: number,
+    location: Location,
+    balance: number = 500,
+    private messenger: AppMessenger,
+  ) {
     this.name = name;
     this.age = age;
     this.location = location;
@@ -37,18 +44,18 @@ export default class User {
   }
 
   // Methods
-  findNearestAvailableStation() {
-    return DockingStation.findNearestDockWithAvailableScooter(this);
+  hireFrom(stationId: number) {
+    return this.messenger.hireFrom(this, stationId);
   }
 
-  hireFrom(station: DockingStation) {
-    return station.hire(this);
+  findNearestAvailableScooter() {
+    return this.messenger.findClosestAvailable(this.location);
   }
 
-  dock(station: DockingStation, isBroken: boolean) {
-    station.dock(this, isBroken);
-    this.previousScooter = this.scooter;
-    this.scooter = false;
+  dock(stationId: number, isBroken: boolean) {
+    PhysicalScooter.dock(stationId, isBroken);
+    this.previousScooterId = this.scooterId;
+    this.scooterId = false;
   }
 
   takePayment(batteryUsed: number) {
@@ -56,7 +63,7 @@ export default class User {
     return this.balance;
   }
 
-  assign(scooter: Scooter) {
-    this.scooter = scooter;
+  assign(scooterId: number) {
+    this.scooterId = scooterId;
   }
 }
