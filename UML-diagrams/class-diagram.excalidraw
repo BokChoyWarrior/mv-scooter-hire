@@ -121,7 +121,7 @@
       "boundElementIds": [],
       "fontSize": 20,
       "fontFamily": 2,
-      "text": "-id: number\n-isHired: bool\n-userHiring: User\n-station: ChargingStation\n-isBroken: bool\n-isBeingFixed: Technician\n-isAvailable: bool\n-batteryLevel: number 0< x < 100\n-emitter: EventEmitter (for emitting available/unavailable to station)\n-chargingPromise: Promise\n-fixingPromise: Promise",
+      "text": "-id: number\n-isHired: bool\n-userHiring: User\n-station: ChargingStation\n-isBroken: bool\n-isBeingFixed: Technician\n-isAvailable: bool\n-batteryPercent: number 0< x < 100\n-emitter: EventEmitter (for emitting available/unavailable to station)\n-chargingPromise: Promise\n-fixingPromise: Promise",
       "baseline": 257,
       "textAlign": "left",
       "verticalAlign": "top"

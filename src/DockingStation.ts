@@ -42,7 +42,9 @@ export class DockingStation {
   public location: Location;
 
   // Private
-  private listeners: { [key: string]: Function[] } = {};
+  private listeners: {
+    [key: string]: { availableListener: (eventName: string) => void; unavailableListener: (eventName: string) => void };
+  } = {};
 
   // Constructor
   constructor(location: Location) {
@@ -61,23 +63,23 @@ export class DockingStation {
 
   // Methods
   /**
-   * Automatically decides what to do whether supplied argument is a `User` or `Scooter`
+   * Automatically decides what to do whether supplied argument is a {@link User} or {@link Scooter}
    *
    * @param thing
    */
-  dock(thing: User | Scooter) {
+  dock(thing: User | Scooter, isBroken: boolean = false) {
     if (thing instanceof User) {
-      this._userDock(thing);
+      this._userDock(thing, isBroken);
     } else {
       this._scooterDock(thing);
     }
   }
-  _userDock(user: User) {
+  private _userDock(user: User, isBroken: boolean) {
     if (!user.scooter) {
       throw new Error("scooter not given - maybe the user doesn't have one assigned?");
     }
-    const batteryUsed = 100 - user.scooter.batteryLevel;
-    this._scooterDock(user.scooter);
+    const batteryUsed = 100 - user.scooter.batteryPercent;
+    this._scooterDock(user.scooter, isBroken);
     // TODO
     // this.takePayment(user, batteryUsed)
 
@@ -87,28 +89,21 @@ export class DockingStation {
     user.takePayment(batteryUsed);
   }
 
-  _scooterDock(scooter: Scooter) {
+  private _scooterDock(scooter: Scooter, isBroken: boolean = false) {
     // add scooter to list of scooters
     this.scooters[scooter.id] = scooter;
     scooter.isHired = false;
+
+    this.addListeners(scooter);
+
+    scooter.isBroken = isBroken;
+    if (isBroken) {
+      scooter.fix();
+    }
     scooter.charge();
     if (scooter.isAvailable) {
       this.availableScooters[scooter.id] = scooter;
     }
-    // Setup listeners
-    const availableListener = () => {
-      this.availableScooters[scooter.id] = scooter;
-    };
-
-    const unavailableListener = () => {
-      delete this.availableScooters[scooter.id];
-    };
-
-    scooter.on('available', availableListener);
-    scooter.on('unavailable', unavailableListener);
-
-    this.listeners[scooter.id] = [];
-    this.listeners[scooter.id] = [availableListener, unavailableListener];
   }
 
   hire(user: User): Scooter {
@@ -125,6 +120,7 @@ export class DockingStation {
     scooterId = Ids[(Ids.length * Math.random()) << 0];
 
     const scooter = this.availableScooters[scooterId];
+    this.removeListeners(scooter);
     this._assign(scooter, user);
     scooter.isHired = true;
     return scooter;
@@ -134,5 +130,25 @@ export class DockingStation {
     delete this.scooters[scooter.id];
     delete this.availableScooters[scooter.id];
     user.scooter = scooter;
+  }
+
+  addListeners(scooter: Scooter) {
+    const availableListener = () => {
+      this.availableScooters[scooter.id] = scooter;
+    };
+
+    const unavailableListener = () => {
+      delete this.availableScooters[scooter.id];
+    };
+
+    scooter.on('available', availableListener);
+    scooter.on('unavailable', unavailableListener);
+
+    this.listeners[scooter.id] = { availableListener: availableListener, unavailableListener: unavailableListener };
+  }
+
+  removeListeners(scooter: Scooter) {
+    scooter.off('available', this.listeners[scooter.id].availableListener);
+    scooter.off('unavailable', this.listeners[scooter.id].unavailableListener);
   }
 }

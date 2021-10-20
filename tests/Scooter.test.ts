@@ -2,7 +2,6 @@ import { Scooter } from '../src/Scooter';
 import { DockingStation } from '../src/DockingStation';
 import { User } from '../src/User';
 import { Location } from '../src/Location';
-
 function teardownMockEnvironment() {
   Scooter.removeAll();
   User.removeAll();
@@ -10,14 +9,20 @@ function teardownMockEnvironment() {
 }
 
 describe('the Scooter class', () => {
-  afterEach(teardownMockEnvironment);
+  afterEach(() => {
+    jest.useRealTimers();
+    teardownMockEnvironment();
+  });
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
 
   it('should charge properly', () => {
     const scooter = new Scooter();
-    expect(scooter.batteryLevel).toBe(100);
+    expect(scooter.batteryPercent).toBe(100);
 
-    scooter.batteryLevel = 1;
-    expect(scooter.batteryLevel).toBe(1);
+    scooter.batteryPercent = 1;
+    expect(scooter.batteryPercent).toBe(1);
     expect(scooter.isAvailable).toBe(false);
 
     const promiseA = scooter.charge();
@@ -25,17 +30,19 @@ describe('the Scooter class', () => {
     expect(promiseA).toBe(promiseB); // We use toBe() to check reference, not value
 
     // WORKS
-    return scooter
+    const promise = scooter
       .charge()
       .then(() => {
-        expect(scooter.batteryLevel).toBe(100);
+        expect(scooter.batteryPercent).toBe(100);
         expect(scooter.isAvailable).toBe(true);
       })
       .catch();
 
+    jest.runAllTimers();
+    return promise;
     // Also works :)
     // await scooter.charge();
-    // expect(scooter.batteryLevel).toBe(100);
+    // expect(scooter.batteryPercent).toBe(100);
     // expect(scooter.isAvailable).toBe(true);
   });
 
@@ -54,23 +61,25 @@ describe('the Scooter class', () => {
     const promiseB = scooter.fix();
     expect(promiseA).toBe(promiseB);
 
-    return scooter
+    const promise = scooter
       .fix()
       .then(() => {
         expect(scooter.isBroken).toBe(false);
         expect(scooter.isAvailable).toBe(true);
       })
       .catch();
+    jest.runAllTimers();
+    return promise;
   });
 
   it('should set itself available when charged and fixed', async () => {
     let scooterAlerter = new Scooter();
     scooterAlerter.isBroken = true;
-    scooterAlerter.batteryLevel = 0;
+    scooterAlerter.batteryPercent = 0;
 
     // Assign an event listener for the scooter to tell us when it's available
     scooterAlerter.once('available', () => {
-      expect(!!scooterAlerter.batteryLevel && !scooterAlerter.isBroken).toBe(true);
+      expect(!!scooterAlerter.batteryPercent && !scooterAlerter.isBroken).toBe(true);
       expect(scooterAlerter.isAvailable).toBe(true);
     });
 
@@ -79,7 +88,9 @@ describe('the Scooter class', () => {
     let p1 = scooterAlerter.fix();
     let p2 = scooterAlerter.charge();
     // Once both these promises resolve, the event should have already fired and called callback above, so test should pass.
-    await Promise.all([p1, p2]);
+    const promise = Promise.all([p1, p2]);
+    jest.advanceTimersByTime(5000);
+    return promise;
   });
 
   it('should discharge while hired, and charge when docked', async () => {
@@ -101,28 +112,41 @@ describe('the Scooter class', () => {
     // Testing discharging
     scooter = user.hireFrom(nearest);
 
-    expect(scooter.batteryLevel).toBe(100);
+    expect(scooter.batteryPercent).toBe(100);
 
     //wait 0.2 secs (or 0.2 hours)
-    await new Promise(res => setTimeout(res, 200));
-    expect(scooter.batteryLevel).toBeLessThan(100);
+    jest.advanceTimersByTime(2000);
+    expect(scooter.batteryPercent).toBeLessThan(100);
     nearest.dock(user);
 
     // wait for charge
-    await new Promise(res => setTimeout(res, 2000));
-    expect(scooter.batteryLevel).toBe(100);
+    jest.advanceTimersByTime(2000);
+    expect(scooter.batteryPercent).toBe(100);
   });
 
   test('the scooter should not pass 0 battery level', async () => {
     const station = new DockingStation(new Location());
     const s1 = new Scooter();
     station.dock(s1);
+
     const user = new User('test', 48930242, new Location());
 
-    s1.batteryDischargeRate = 1000;
     user.hireFrom(station);
-    await new Promise(res => setTimeout(res, 500));
+    jest.advanceTimersByTime(5000);
 
-    expect(s1.batteryLevel).toBe(0);
+    expect(s1.batteryPercent).toBe(0);
+  });
+
+  test('the scooter should not be hired after it is docked', () => {
+    const user = new User('1', 50, new Location());
+    const station = new DockingStation(new Location());
+    const scooter = new Scooter();
+    station.dock(scooter);
+
+    expect(scooter.isHired).toBe(false);
+    user.hireFrom(station);
+    expect(scooter.isHired).toBe(true);
+    user.dock(station, false);
+    expect(scooter.isHired).toBe(false);
   });
 });

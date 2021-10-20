@@ -13,11 +13,14 @@ function teardownMockEnvironment() {
 }
 
 describe('the User (and Person) class', () => {
-  // beforeEach(() => {
-  //   return ({ scooters, users, stations } = setupMockEnvironment());
-  // });
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
 
-  afterEach(teardownMockEnvironment);
+  afterEach(() => {
+    teardownMockEnvironment();
+    jest.useRealTimers();
+  });
 
   it('the user can register', () => {
     let person = new Person('harv', 55, new Location());
@@ -37,7 +40,6 @@ describe('the User (and Person) class', () => {
     station.dock(s1);
 
     const nearest = user.findNearestAvailableStation();
-    // console.log(nearest);
     expect(nearest).toBe(station);
 
     let scooter: Scooter;
@@ -49,11 +51,11 @@ describe('the User (and Person) class', () => {
     // Testing discharging
     scooter = user.hireFrom(nearest);
 
-    expect(scooter.batteryLevel).toBe(100);
+    expect(scooter.batteryPercent).toBe(100);
 
     //wait 0.2 secs (or 0.2 hours)
-    await new Promise(res => setTimeout(res, 200));
-    expect(scooter.batteryLevel).toBeLessThan(100);
+    jest.advanceTimersByTime(2000);
+    expect(scooter.batteryPercent).toBeLessThan(100);
     nearest.dock(user);
   });
 
@@ -65,8 +67,8 @@ describe('the User (and Person) class', () => {
 
     const prevBalance = user.balance;
     user.hireFrom(station);
-    await new Promise(res => setTimeout(res, 200));
-    user.dock(station);
+    jest.advanceTimersByTime(1000);
+    user.dock(station, false);
 
     expect(user.balance).toBeLessThan(prevBalance);
   });
@@ -88,9 +90,7 @@ describe('the User (and Person) class', () => {
 
     user.hireFrom(station);
 
-    user.dock(station);
-
-    user.markPrevScooterBroken();
+    user.dock(station, true);
 
     const nearest = user.findNearestAvailableStation();
     expect(nearest).toBe(false);
@@ -101,7 +101,7 @@ describe('the User (and Person) class', () => {
     const s1 = new Scooter();
     const user = new User('test', 48930242, new Location());
 
-    expect(() => user.dock(station)).toThrowError();
+    expect(() => user.dock(station, false)).toThrowError();
   });
 
   it('the user cannot hire from a station with no scooters', () => {
@@ -109,11 +109,5 @@ describe('the User (and Person) class', () => {
     const user = new User('test', 48930242, new Location());
 
     expect(() => user.hireFrom(station)).toThrowError();
-  });
-
-  it("the user can't mark scooter as broken if they haven't hired one yet!", () => {
-    const user = new User('test', 48930242, new Location());
-
-    expect(() => user.markPrevScooterBroken()).toThrowError();
   });
 });

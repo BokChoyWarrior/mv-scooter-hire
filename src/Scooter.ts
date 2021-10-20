@@ -13,20 +13,31 @@ export class Scooter {
   public batteryDischargeRate = 50;
 
   // Private
-  private _batteryLevel = 100;
+  private _batteryPercent = 100;
   private _isBroken = false;
   private _isBeingFixed = false;
   private _isCharging = false;
   private _isHired = false;
   public _isAvailable = true;
 
-  private _emitter = new EventEmitter();
-  // Note: Here we create two fulfilled promises so that we can track the active fixes or charge task
-  // When a scooter begins charging, we update this value so that if charge() or fix() are called again,
-  // we can see there is an active promise and return that to the callee in order to be notified when
-  // the scooter is fixed/charged
-  private _chargingPromise: Promise<void> = new Promise(res => res());
-  private _fixingPromise: Promise<void> = new Promise(res => res());
+  /**
+   * An internal emitter which the {@link DockingStation} can listen to by proxying the {@link on}, {@link once}, and {@link on}
+   */
+  private emitter = new EventEmitter();
+  /**
+   * A promise which tracks the status of the active {@link charge} task.
+   * @example
+   * ```
+   * let p1 = anyScooter.charge()
+   * let p2 = anyScooter.charge()
+   * // These statements return the same promise
+   * ```
+   */
+  private chargingPromise: Promise<void> = new Promise(res => res());
+  /**
+   * @see {@link chargingPromise} for the same implementation, but with charging.
+   */
+  private fixingPromise: Promise<void> = new Promise(res => res());
 
   // Constructor
   constructor() {
@@ -35,15 +46,19 @@ export class Scooter {
 
   // Proxies for emitter
   emit(event: string) {
-    this._emitter.emit(event);
+    this.emitter.emit(event);
   }
 
   on(eventName: string | symbol, listener: (...args: any[]) => void) {
-    this._emitter.on(eventName, listener);
+    this.emitter.on(eventName, listener);
   }
 
   once(eventName: string | symbol, listener: (...args: any[]) => void) {
-    this._emitter.on(eventName, listener);
+    this.emitter.on(eventName, listener);
+  }
+
+  off(eventName: string | symbol, listener: (...args: any[]) => void) {
+    this.emitter.off(eventName, listener);
   }
 
   // Getters + setters
@@ -59,12 +74,12 @@ export class Scooter {
     this.updateAvailability();
   }
 
-  get batteryLevel() {
-    return this._batteryLevel;
+  get batteryPercent() {
+    return this._batteryPercent;
   }
 
-  set batteryLevel(level) {
-    this._batteryLevel = level;
+  set batteryPercent(level) {
+    this._batteryPercent = level;
     if (level === 100) {
       this._isCharging = false;
     }
@@ -77,10 +92,15 @@ export class Scooter {
 
   set isHired(hired) {
     this._isHired = hired;
-    this.discharge();
+    if (hired) {
+      this.discharge();
+    }
     this.updateAvailability();
   }
 
+  /**
+   * Whether the scooter is at a station, charged, and not broken.
+   */
   get isAvailable() {
     return this._isAvailable;
   }
@@ -92,56 +112,65 @@ export class Scooter {
 
   // Methods
   updateAvailability() {
-    if (this.isHired || this.isBroken || this.batteryLevel !== 100) {
+    if (this.isHired || this.isBroken || this.batteryPercent !== 100) {
       this.isAvailable = false;
     } else {
       this.isAvailable = true;
     }
   }
 
-  // Again, if the scooter is charging, there should be an unfulfilled promise in this._isCharging
-  // so we can siply return that. Otherwise, we create a new promise and set this._isCharging to it,
-  // and then return to the callee
+  /**
+   * A function which can be called to charge the Scooter. This will set {@link chargingPromise}, and then return it.
+   *
+   * If the scooter is already charging, the current {@link chargingPromise} will simply be returned.
+   *
+   */
   charge(): Promise<void> {
     if (!this._isCharging) {
       this._isCharging = true;
 
-      this._chargingPromise = new Promise(resolve => {
+      this.chargingPromise = new Promise(resolve => {
         setTimeout(() => {
-          this.batteryLevel = 100;
+          this.batteryPercent = 100;
           resolve();
-        }, (100 - this.batteryLevel) * 20);
+        }, (100 - this.batteryPercent) * 20);
       });
     }
-    return this._chargingPromise;
+    return this.chargingPromise;
   }
 
-  // Same thing here, but for fixing
+  /**
+   * @see {@link charge}
+   *
+   */
   fix(): Promise<void> {
     if (!this._isBeingFixed) {
       this._isBeingFixed = true;
 
-      this._fixingPromise = new Promise(resolve => {
+      this.fixingPromise = new Promise(resolve => {
         setTimeout(() => {
           this.isBroken = false;
           resolve();
         }, Math.random() * 5000);
       });
     }
-    return this._fixingPromise;
+    return this.fixingPromise;
   }
 
   /**
+   * A recursive promise which removes some battery level while the scooter is hired. Works by recursively calling a setTimeout() on itself
    *
-   *  Recursive promise which removes some battery level while the scooter is hired
+   * Runs while {@link isHired} is `true`
+   *
+   * If you wish to change the rate of discharge, please change {@link batteryDischargeRate}
    */
   async discharge() {
     const interval = (1000 / this.batteryDischargeRate) * 5;
     const dischargeBy5 = async () => {
       if (this.isHired) {
-        await setTimeout(() => {
-          if (this.batteryLevel > 1) {
-            this.batteryLevel -= 5;
+        setTimeout(() => {
+          if (this.batteryPercent > 1) {
+            this.batteryPercent -= 5;
             dischargeBy5();
           }
         }, interval);
@@ -149,10 +178,4 @@ export class Scooter {
     };
     dischargeBy5();
   }
-
-  // async fix() {
-  //   this._isBeingFixed = true;
-  //   await new Promise(res => setTimeout(res, Math.random() * 5000));
-  //   this.isBroken = false;
-  // }
 }

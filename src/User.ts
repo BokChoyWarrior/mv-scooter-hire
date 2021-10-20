@@ -39,20 +39,12 @@ export class User {
     return station.hire(this);
   }
 
-  dock(station: DockingStation) {
-    station.dock(this);
+  dock(station: DockingStation, isBroken: boolean) {
+    station.dock(this, isBroken);
   }
 
   takePayment(batteryUsed: number) {
     this.balance -= batteryUsed * 10;
     return this.balance;
-  }
-
-  markPrevScooterBroken() {
-    if (!this.previousScooter) {
-      throw new Error("User can't mark the prev ride as broken if they haven't ridden yet");
-    }
-    this.previousScooter.isBroken = true;
-    // ??????
   }
 }
