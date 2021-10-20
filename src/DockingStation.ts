@@ -74,18 +74,17 @@ export class DockingStation {
       this._scooterDock(thing);
     }
   }
+
   private _userDock(user: User, isBroken: boolean) {
     if (!user.scooter) {
       throw new Error("scooter not given - maybe the user doesn't have one assigned?");
     }
-    const batteryUsed = 100 - user.scooter.batteryPercent;
-    this._scooterDock(user.scooter, isBroken);
-    // TODO
-    // this.takePayment(user, batteryUsed)
 
+    this._scooterDock(user.scooter, isBroken);
+
+    const batteryUsed = 100 - user.scooter.batteryPercent;
     user.previousScooter = user.scooter;
     user.scooter = false;
-
     user.takePayment(batteryUsed);
   }
 
