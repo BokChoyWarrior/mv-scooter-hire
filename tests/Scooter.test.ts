@@ -86,4 +86,27 @@ describe('the Scooter class', () => {
     user.dock(station);
     expect(scooter.isHired).toBe(false);
   });
+
+  it('should have equal charging promises', () => {
+    scooter.batteryPercent = 0;
+    const p1 = scooter.charge();
+    const p2 = scooter.charge();
+
+    expect(p1).toBe(p2);
+  });
+
+  it('should have equal fixing promises', () => {
+    scooter.isBroken = true;
+    const p1 = scooter.fix();
+    const p2 = scooter.fix();
+
+    expect(p1).toBe(p2);
+  });
+
+  it("shouldn't discharge while docked, even if asked", () => {
+    station.dock(scooter);
+    scooter.discharge();
+    jest.runAllTimers();
+    expect(scooter.batteryPercent).toBe(100);
+  });
 });

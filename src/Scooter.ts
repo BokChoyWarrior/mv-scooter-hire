@@ -135,7 +135,11 @@ export default class Scooter {
   }
 
   // Methods
-  _dock(station: Dock, isBroken: boolean = false) {
+  /**
+   * This method should **NEVER** be called explicitly, other than
+   *  from {@link DockingStation.dock} and {@link App.dock}
+   */
+  _dock(station: Dock, isBroken: boolean) {
     this.isBroken = isBroken;
     this.isHired = false;
     this.chargingPort = station;

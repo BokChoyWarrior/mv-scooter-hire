@@ -68,4 +68,19 @@ describe('the DockingStation class', () => {
     }
     expect(nearest.id).toBe(stationClose.id);
   });
+
+  it('should correctly find the closest station', () => {
+    const stationMidway = new DockingStation(new Location(1, 0));
+    stationFar.dock(scooter1);
+    stationMidway.dock(scooter2);
+
+    const nearest = user.findNearestAvailableScooter();
+
+    expect(nearest).not.toBe(false);
+    if (!nearest) {
+      return;
+    }
+
+    expect(nearest.id).toBe(1);
+  });
 });

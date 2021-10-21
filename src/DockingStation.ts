@@ -4,15 +4,16 @@ import Location from './Location';
 export default class DockingStation implements Dock {
   static all: Map<number, DockingStation> = new Map();
 
-  static lastNamedStation = 0;
+  static nextNamedStation = 0;
 
   static removeAll() {
     DockingStation.all = new Map();
+    this.nextNamedStation = 0;
   }
   // END static
 
   // Public
-  id = DockingStation.lastNamedStation + 1;
+  id = DockingStation.nextNamedStation;
 
   public scooters: { [key: string]: Scooter } = {};
 
@@ -24,7 +25,7 @@ export default class DockingStation implements Dock {
   constructor(location: Location = new Location()) {
     this.location = location;
     DockingStation.all.set(this.id, this);
-    DockingStation.lastNamedStation = this.id;
+    DockingStation.nextNamedStation += 1;
   }
 
   // Getters + setters
