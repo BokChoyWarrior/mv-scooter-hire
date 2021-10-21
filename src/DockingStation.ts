@@ -1,155 +1,84 @@
-import User from './User';
-import Scooter from './Scooter';
+import Scooter, { Dock } from './Scooter';
 import Location from './Location';
 
-export default class DockingStation {
-  static all: DockingStation[] = [];
+export default class DockingStation implements Dock {
+  static all: Map<number, DockingStation> = new Map();
+
+  static lastNamedStation = 0;
 
   static removeAll() {
-    DockingStation.all = [];
-  }
-
-  /**
-   * Does what it says on the tin!
-   */
-  public static findNearestDockWithAvailableScooter(user: User): DockingStation | false {
-    let nearest: false | DockingStation = false;
-    let lowestDistance = Infinity;
-    DockingStation.all.forEach((station) => {
-      if (station.numAvailableScooters < 1) {
-        return;
-      }
-      const distance = station.location.distanceTo(user.location);
-      if (nearest === false || distance < lowestDistance) {
-        lowestDistance = distance;
-        nearest = station;
-      }
-    });
-
-    if (nearest === false) {
-      return false;
-    }
-    return nearest;
+    DockingStation.all = new Map();
   }
   // END static
 
   // Public
+  id = DockingStation.lastNamedStation + 1;
+
   public scooters: { [key: string]: Scooter } = {};
 
   public availableScooters: { [key: string]: Scooter } = {};
 
   public location: Location;
 
-  // Private
-  private listeners: {
-    [key: string]: {
-      availableListener: (eventName: string) => void;
-      unavailableListener: (eventName: string) => void;
-    };
-  } = {};
-
   // Constructor
-  constructor(location: Location) {
+  constructor(location: Location = new Location()) {
     this.location = location;
-    DockingStation.all.push(this);
+    DockingStation.all.set(this.id, this);
+    DockingStation.lastNamedStation = this.id;
   }
 
   // Getters + setters
   get numAvailableScooters() {
-    let num = 0;
-    Object.keys(this.availableScooters).forEach(() => {
-      num += 1;
-    });
-    return num;
+    return Object.keys(this.availableScooters).length;
   }
 
   // Methods
+  static findClosestAvailable(location: Location): DockingStation | false {
+    let closest: false | DockingStation = false;
+    let lowestDistance = Infinity;
+    DockingStation.all.forEach((_, index) => {
+      const station = DockingStation.all.get(index);
+      if (station === undefined || station.numAvailableScooters < 1) {
+        return;
+      }
+      const distance = station.location.distanceTo(location);
+      if (closest === false || distance < lowestDistance) {
+        lowestDistance = distance;
+        closest = station;
+      }
+    });
+    return closest;
+  }
+
   /**
    * Automatically decides what to do whether supplied argument is a {@link User} or {@link Scooter}
    *
    * @param thing
    */
-  dock(thing: User | Scooter, isBroken: boolean = false) {
-    if (thing instanceof User) {
-      this._userDock(thing, isBroken);
-    } else {
-      this._scooterDock(thing);
-    }
-  }
-
-  private _userDock(user: User, isBroken: boolean) {
-    if (!user.scooter) {
-      throw new Error("scooter not given - maybe the user doesn't have one assigned?");
-    }
-
-    this._scooterDock(user.scooter, isBroken);
-
-    const batteryUsed = 100 - user.scooter.batteryPercent;
-    user.takePayment(batteryUsed);
-  }
-
-  private _scooterDock(scooter: Scooter, isBroken: boolean = false) {
-    // add scooter to list of scooters
+  dock(scooter: Scooter, isBroken: boolean = false) {
     this.scooters[scooter.id] = scooter;
 
-    this.addListeners(scooter);
-    scooter.dock(isBroken);
+    scooter._dock(this, isBroken);
 
     if (isBroken) {
       scooter.fix();
     }
-    scooter.charge();
+
     if (scooter.isAvailable) {
       this.availableScooters[scooter.id] = scooter;
     }
   }
 
-  hire(user: User): Scooter {
-    if (user.balance <= 0) {
-      throw new Error('Insufficient balance');
-    }
-    if (this.numAvailableScooters === 0) {
-      throw new Error('The station selected has no available scooters');
-    }
-
-    // Choose a random scooter from availableScooters
-    const Ids = Object.keys(this.availableScooters);
-    // eslint-disable-next-line no-bitwise
-    const scooterId = Ids[(Ids.length * Math.random()) << 0];
-
-    const scooter = this.availableScooters[scooterId];
-    this.removeListeners(scooter);
-    this._assign(scooter, user);
-    scooter.isHired = true;
-    return scooter;
+  onNotifyAvailable(scooter: Scooter) {
+    this.availableScooters[scooter.id] = scooter;
   }
 
-  private _assign(scooter: Scooter, user: User) {
+  onNotifyUnavailable(scooter: Scooter) {
+    delete this.availableScooters[scooter.id];
+  }
+
+  hireScooter(scooter: Scooter) {
     delete this.scooters[scooter.id];
     delete this.availableScooters[scooter.id];
-    user.assign(scooter);
-  }
-
-  addListeners(scooter: Scooter) {
-    const availableListener = () => {
-      this.availableScooters[scooter.id] = scooter;
-    };
-
-    const unavailableListener = () => {
-      delete this.availableScooters[scooter.id];
-    };
-
-    scooter.on('available', availableListener);
-    scooter.on('unavailable', unavailableListener);
-
-    this.listeners[scooter.id] = {
-      availableListener,
-      unavailableListener,
-    };
-  }
-
-  removeListeners(scooter: Scooter) {
-    scooter.off('available', this.listeners[scooter.id].availableListener);
-    scooter.off('unavailable', this.listeners[scooter.id].unavailableListener);
   }
 }

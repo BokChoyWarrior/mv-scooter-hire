@@ -1,35 +1,34 @@
 import DockingStation from './DockingStation';
 import Location from './Location';
-import Scooter from './Scooter';
-import User from './User';
+import User, { UserApp } from './User';
 
-export class App implements AppMessenger {
-  static dockingStations: DockingStation[] = [];
+export default class App implements UserApp {
+  users: User[] = [];
 
-  static scooters: Scooter[] = [];
-
-  constructor(private messenger: AppMessenger) {}
-
-  static dock(stationId: any, isBroken: boolean) {
-    throw new Error('Method not implemented.');
-  }
-
-  static hire(stationId: number, arg1: this) {
-    throw new Error('Method not implemented.');
-  }
-
-  static findNearestDockWithAvailableScooter(location: Location) {
-    throw new Error('Method not implemented.');
-  }
-
-  hire(user: User, stationId: number) {
-    if (stationId === 0) {
-      return this.availableLocation;
+  // eslint-disable-next-line class-methods-use-this
+  hireFrom(user: User, station: DockingStation) {
+    if (user.balance <= 0) {
+      throw new Error('Insufficient balance');
     }
-    return false;
-  }
-}
 
-export interface AppMessenger {
-  send(): object;
+    if (station.numAvailableScooters === 0) {
+      throw new Error('The station selected has no available scooters');
+    }
+
+    // Choose a random scooter from availableScooters
+    const Ids = Object.keys(station.availableScooters);
+    // Magic rounding
+    // eslint-disable-next-line no-bitwise
+    const scooterId = Ids[(Ids.length * Math.random()) << 0];
+    const scooter = station.availableScooters[scooterId];
+
+    station.hireScooter(scooter);
+    scooter.isHired = true;
+    return scooter;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  findClosestAvailable(location: Location): DockingStation | false {
+    return DockingStation.findClosestAvailable(location);
+  }
 }

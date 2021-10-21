@@ -1,5 +1,5 @@
 import Location from './Location';
-import User from './User';
+import User, { UserApp } from './User';
 
 export default class Person {
   name;
@@ -8,17 +8,17 @@ export default class Person {
 
   location;
 
-  constructor(name: string, age: number, location: Location) {
+  constructor(name: string, age: number, location: Location = new Location()) {
     this.name = name;
     this.age = age;
     this.location = location;
   }
 
-  register() {
+  register(app: UserApp) {
     if (this.age < 18) {
       throw new Error('You muat be 18 years of age to register');
     } else {
-      return new User(this.name, this.age, this.location);
+      return new User(this.name, this.age, app, this.location);
     }
   }
 }

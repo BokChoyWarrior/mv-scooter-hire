@@ -1,20 +1,32 @@
-import { EventEmitter } from 'events';
+export interface Dock {
+  dock(scooter: Scooter, isBroken: boolean): void;
+
+  onNotifyAvailable(scooter: Scooter): void;
+
+  onNotifyUnavailable(scooter: Scooter): void;
+}
 
 export default class Scooter {
   // Static
-  static all: Scooter[] = [];
+  static all: { [key: number]: Scooter } = [];
+
+  static lastNamedScooter = 0;
 
   static removeAll() {
     Scooter.all = [];
   }
 
   // Public
-  public id = Scooter.all.length;
+  public id = Scooter.lastNamedScooter + 1;
 
   public batteryDischargeRate = 50;
 
+  public chargingPort;
+
   // Private
   private _batteryPercent = 100;
+
+  private _isHired = false;
 
   private _isBroken = false;
 
@@ -22,15 +34,7 @@ export default class Scooter {
 
   private _isCharging = false;
 
-  private _isHired = false;
-
   public _isAvailable = true;
-
-  /**
-   * An internal emitter which the {@link DockingStation} can listen to by proxying
-   * the {@link on}, {@link once}, and {@link on}
-   */
-  private emitter = new EventEmitter();
 
   /**
    * A promise which tracks the status of the active {@link charge} task.
@@ -49,25 +53,23 @@ export default class Scooter {
   private fixingPromise: Promise<void> = new Promise((res) => res());
 
   // Constructor
-  constructor() {
-    Scooter.all.push(this);
+  constructor(chargingPort: Dock | false = false) {
+    Scooter.all[this.id] = this;
+    this.chargingPort = chargingPort;
   }
 
-  // Proxies for emitter
-  emit(event: string) {
-    this.emitter.emit(event);
+  notifyAvailable() {
+    if (!this.chargingPort) {
+      return;
+    }
+    this.chargingPort.onNotifyAvailable(this);
   }
 
-  on(eventName: string | symbol, listener: (...args: any[]) => void) {
-    this.emitter.on(eventName, listener);
-  }
-
-  once(eventName: string | symbol, listener: (...args: any[]) => void) {
-    this.emitter.on(eventName, listener);
-  }
-
-  off(eventName: string | symbol, listener: (...args: any[]) => void) {
-    this.emitter.off(eventName, listener);
+  notifyUnavailable() {
+    if (!this.chargingPort) {
+      return;
+    }
+    this.chargingPort.onNotifyUnavailable(this);
   }
 
   // Getters + setters
@@ -95,16 +97,25 @@ export default class Scooter {
     this.updateAvailability();
   }
 
+  get isCharging() {
+    return this._isCharging;
+  }
+
+  set isCharging(charging) {
+    this._isCharging = charging;
+    this.updateAvailability();
+  }
+
   get isHired() {
     return this._isHired;
   }
 
-  set isHired(hired) {
-    this._isHired = hired;
-    if (hired) {
+  set isHired(isHired: boolean) {
+    this._isHired = isHired;
+    if (isHired) {
+      this.isCharging = false;
       this.discharge();
     }
-    this.updateAvailability();
   }
 
   /**
@@ -117,16 +128,18 @@ export default class Scooter {
   set isAvailable(available) {
     this._isAvailable = available;
     if (available) {
-      this.emit('available');
+      this.notifyAvailable();
     } else {
-      this.emit('unavailable');
+      this.notifyUnavailable();
     }
   }
 
   // Methods
-  dock(isBroken: boolean) {
-    this.isHired = false;
+  _dock(station: Dock, isBroken: boolean = false) {
     this.isBroken = isBroken;
+    this.isHired = false;
+    this.chargingPort = station;
+    this.charge();
   }
 
   updateAvailability() {
@@ -146,8 +159,8 @@ export default class Scooter {
    *
    */
   charge(): Promise<void> {
-    if (!this._isCharging) {
-      this._isCharging = true;
+    if (!this.isCharging) {
+      this.isCharging = true;
 
       this.chargingPromise = new Promise((resolve) => {
         setTimeout(() => {
@@ -190,7 +203,7 @@ export default class Scooter {
     const dischargeBy5 = async () => {
       if (this.isHired) {
         setTimeout(() => {
-          if (this.batteryPercent > 1) {
+          if (this.batteryPercent > 1 && this.isHired) {
             this.batteryPercent -= 5;
             dischargeBy5();
           }

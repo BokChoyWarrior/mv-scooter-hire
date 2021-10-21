@@ -12,7 +12,6 @@ export default class App implements AppMessenger {
 
   hire(user: User, stationId: number) {
     if (stationId === 0) {
-      console.log('App recieved HIRE', user);
       return this.availableLocation;
     }
     return false;

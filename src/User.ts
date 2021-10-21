@@ -1,10 +1,11 @@
 import Location from './Location';
-import Scooter from './Scooter';
+import Scooter, { Dock } from './Scooter';
+import DockingStation from './DockingStation';
 
-export interface AppMessenger {
-  hireFrom(user: User, stationId: number): any;
+export interface UserApp {
+  hireFrom(user: User, station: DockingStation): Scooter;
 
-  findClosestAvailable(location: Location): Location | false;
+  findClosestAvailable(location: Location): DockingStation | false;
 }
 
 export default class User {
@@ -21,49 +22,49 @@ export default class User {
   private name;
 
   // Public
-  public location;
+  public location: Location;
 
-  public scooterId: number | false = false;
+  public scooter: Scooter | false = false;
 
-  public previousScooterId: number | false = false;
+  public previousScooter: Scooter | false = false;
 
-  public balance; // pence
+  public balance: number; // pence
 
   constructor(
     name: string,
     age: number,
-    location: Location,
-    balance: number = 500,
-    private messenger: AppMessenger,
+    private app: UserApp,
+    location: Location = new Location(),
   ) {
     this.name = name;
     this.age = age;
     this.location = location;
-    this.balance = balance;
+    this.balance = 1500;
     User.all.push(this);
   }
 
   // Methods
-  hireFrom(stationId: number) {
-    return this.messenger.hireFrom(this, stationId);
+  hireFrom(station: DockingStation) {
+    this.scooter = this.app.hireFrom(this, station);
+    return this.scooter;
   }
 
   findNearestAvailableScooter() {
-    return this.messenger.findClosestAvailable(this.location);
+    return this.app.findClosestAvailable(this.location);
   }
 
-  dock(stationId: number, isBroken: boolean) {
-    PhysicalScooter.dock(stationId, isBroken);
-    this.previousScooterId = this.scooterId;
-    this.scooterId = false;
+  dock(station: Dock, isBroken: boolean = false) {
+    if (!this.scooter) {
+      throw new Error('User cannot dock a scooter they do not own');
+    }
+    station.dock(this.scooter, isBroken);
+
+    this.previousScooter = this.scooter;
+    this.scooter = false;
+    this.takePayment(100 - this.previousScooter.batteryPercent);
   }
 
   takePayment(batteryUsed: number) {
-    this.balance -= batteryUsed * 10;
-    return this.balance;
-  }
-
-  assign(scooterId: number) {
-    this.scooterId = scooterId;
+    this.balance -= 10 * batteryUsed;
   }
 }
