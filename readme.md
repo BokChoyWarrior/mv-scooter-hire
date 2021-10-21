@@ -1,5 +1,9 @@
 ## Notes
 
+### Dependency inversion / facade using interfaces
+
+![](./UML-diagrams/images/dependency-inversion.png)
+
 ### What went well:
 
 - I think I used asynchronous JS nicely for the scooter charging and discharging functionality.
