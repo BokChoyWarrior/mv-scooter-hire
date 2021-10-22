@@ -1,7 +1,7 @@
 ## Notes
 
 **Update**:
-Please check branch `v2` for a better (but unfinished) implementation.
+Please check branch `v2` for an implementation without cyclic dependencies.
 
 ### What went well:
 
