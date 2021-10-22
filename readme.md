@@ -1,5 +1,7 @@
 ## Notes
 
+The original version with cyclic dependencies (which is also complete) is on branch `v1`
+
 ### Dependency inversion / facade using interfaces
 
 ![](./UML-diagrams/images/dependency-inversion.png)
