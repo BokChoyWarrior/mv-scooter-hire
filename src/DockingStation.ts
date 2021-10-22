@@ -2,6 +2,7 @@ import Scooter, { Dock } from './Scooter';
 import Location from './Location';
 
 export default class DockingStation implements Dock {
+  // Static
   static all: Map<number, DockingStation> = new Map();
 
   static nextNamedStation = 0;
@@ -10,10 +11,9 @@ export default class DockingStation implements Dock {
     DockingStation.all = new Map();
     this.nextNamedStation = 0;
   }
-  // END static
 
   // Public
-  id = DockingStation.nextNamedStation;
+  public id = DockingStation.nextNamedStation;
 
   public scooters: { [key: string]: Scooter } = {};
 
@@ -51,15 +51,20 @@ export default class DockingStation implements Dock {
     return closest;
   }
 
+  hireScooter(scooter: Scooter) {
+    delete this.scooters[scooter.id];
+    delete this.availableScooters[scooter.id];
+  }
+
+  // Methods required by Dock interface
   /**
-   * Automatically decides what to do whether supplied argument is a {@link User} or {@link Scooter}
+   * This method should **NEVER** be called explicitly, other than
+   * from {@link Scooter.dock} and {@link App.dock}. You should use
+   * the {@link Scooter.dock} and provide the {@link DockingStation} as an arg
    *
-   * @param thing
    */
   dock(scooter: Scooter, isBroken: boolean = false) {
     this.scooters[scooter.id] = scooter;
-
-    scooter._dock(this, isBroken);
 
     if (isBroken) {
       scooter.fix();
@@ -75,11 +80,6 @@ export default class DockingStation implements Dock {
   }
 
   onNotifyUnavailable(scooter: Scooter) {
-    delete this.availableScooters[scooter.id];
-  }
-
-  hireScooter(scooter: Scooter) {
-    delete this.scooters[scooter.id];
     delete this.availableScooters[scooter.id];
   }
 }

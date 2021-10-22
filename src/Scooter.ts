@@ -6,6 +6,12 @@ export interface Dock {
   onNotifyUnavailable(scooter: Scooter): void;
 }
 
+/**
+ * When a {@link Scooter} is docked. It will have it's chargingPort attribute set to the given
+ * object which implements {@link Dock}.
+ *
+ * The scooter will then notify it's {@link Dock} when it is available or unavailable.
+ */
 export default class Scooter {
   // Static
   static all: { [key: number]: Scooter } = [];
@@ -56,20 +62,6 @@ export default class Scooter {
   constructor(chargingPort: Dock | false = false) {
     Scooter.all[this.id] = this;
     this.chargingPort = chargingPort;
-  }
-
-  notifyAvailable() {
-    if (!this.chargingPort) {
-      return;
-    }
-    this.chargingPort.onNotifyAvailable(this);
-  }
-
-  notifyUnavailable() {
-    if (!this.chargingPort) {
-      return;
-    }
-    this.chargingPort.onNotifyUnavailable(this);
   }
 
   // Getters + setters
@@ -135,16 +127,6 @@ export default class Scooter {
   }
 
   // Methods
-  /**
-   * This method should **NEVER** be called explicitly, other than
-   *  from {@link DockingStation.dock} and {@link App.dock}
-   */
-  _dock(station: Dock, isBroken: boolean) {
-    this.isBroken = isBroken;
-    this.isHired = false;
-    this.chargingPort = station;
-    this.charge();
-  }
 
   updateAvailability() {
     if (this.isHired || this.isBroken || this.batteryPercent !== 100) {
@@ -215,5 +197,27 @@ export default class Scooter {
       }
     };
     dischargeBy5();
+  }
+
+  dock(station: Dock, isBroken: boolean = false) {
+    this.isBroken = isBroken;
+    this.isHired = false;
+    this.chargingPort = station;
+    this.chargingPort.dock(this, isBroken);
+    this.charge();
+  }
+
+  notifyAvailable() {
+    if (!this.chargingPort) {
+      return;
+    }
+    this.chargingPort.onNotifyAvailable(this);
+  }
+
+  notifyUnavailable() {
+    if (!this.chargingPort) {
+      return;
+    }
+    this.chargingPort.onNotifyUnavailable(this);
   }
 }

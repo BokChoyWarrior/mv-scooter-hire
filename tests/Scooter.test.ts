@@ -64,7 +64,7 @@ describe('the Scooter class', () => {
     jest.runAllTimers();
     expect(scooter.batteryPercent).toBe(1);
 
-    station.dock(scooter);
+    scooter.dock(station);
     jest.runAllTimers();
     expect(scooter.batteryPercent).toBe(100);
   });
@@ -79,7 +79,7 @@ describe('the Scooter class', () => {
   });
 
   it('should not be hired after it is docked', () => {
-    station.dock(scooter);
+    scooter.dock(station);
 
     user.hireFrom(station);
     expect(scooter.isHired).toBe(true);
@@ -104,7 +104,7 @@ describe('the Scooter class', () => {
   });
 
   it("shouldn't discharge while docked, even if asked", () => {
-    station.dock(scooter);
+    scooter.dock(station);
     scooter.discharge();
     jest.runAllTimers();
     expect(scooter.batteryPercent).toBe(100);

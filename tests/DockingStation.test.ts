@@ -33,14 +33,14 @@ describe('the DockingStation class', () => {
   });
 
   it('should give a station if it has a scooter available', () => {
-    stationFar.dock(scooter2);
+    scooter2.dock(stationFar);
     const nearest = user.findNearestAvailableScooter();
     if (!nearest) return;
     expect(nearest.id).toEqual(stationFar.id);
   });
 
   it('should give a closer station if the closer station has available scooters', () => {
-    stationClose.dock(scooter1);
+    scooter1.dock(stationClose);
     const nearest = user.findNearestAvailableScooter();
     if (!nearest) return;
     expect(nearest.id).toEqual(stationClose.id);
@@ -54,7 +54,7 @@ describe('the DockingStation class', () => {
   });
 
   it('should give the correct station when scooters are moved', () => {
-    stationFar.dock(scooter1);
+    scooter1.dock(stationFar);
     user.hireFrom(stationFar);
     jest.advanceTimersByTime(5000);
     user.dock(stationClose);
@@ -71,7 +71,7 @@ describe('the DockingStation class', () => {
 
   it('should correctly find the closest station', () => {
     const stationMidway = new DockingStation(new Location(1, 0));
-    stationFar.dock(scooter1);
+    scooter1.dock(stationFar);
     stationMidway.dock(scooter2);
 
     const nearest = user.findNearestAvailableScooter();

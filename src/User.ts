@@ -8,6 +8,21 @@ export interface UserApp {
   findClosestAvailable(location: Location): DockingStation | false;
 }
 
+/**
+ * To use the User class and interact with the whole system from a user's perspective,
+ * one must construct a User with an `app` property which implements the {@link UserApp}
+ * interface.
+ *
+ * The user can then hire scooters, check for available scooters, and pay,
+ * all via the {@link UserApp} interface provided.
+ *
+ * @example
+ * ```
+ * const app = new App()
+ * const user = new User("name", 50, app)
+ * ```
+ *
+ */
 export default class User {
   // Statics
   static all: User[] = [];
@@ -49,6 +64,11 @@ export default class User {
     return this.scooter;
   }
 
+  takePayment(batteryUsed: number) {
+    this.balance -= 10 * batteryUsed;
+  }
+
+  // Methods from UserApp
   findNearestAvailableScooter() {
     return this.app.findClosestAvailable(this.location);
   }
@@ -57,14 +77,10 @@ export default class User {
     if (!this.scooter) {
       throw new Error('User cannot dock a scooter they do not own');
     }
-    station.dock(this.scooter, isBroken);
+    this.scooter.dock(station, isBroken);
 
     this.previousScooter = this.scooter;
     this.scooter = false;
     this.takePayment(100 - this.previousScooter.batteryPercent);
-  }
-
-  takePayment(batteryUsed: number) {
-    this.balance -= 10 * batteryUsed;
   }
 }
