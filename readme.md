@@ -1,6 +1,6 @@
 ## Notes
 
-The original version with cyclic dependencies (which is also complete) is on branch `v1`
+The original version ~~with~~ _without_ cyclic dependencies (which is also complete) is on branch `v1`. Branch v1 is WAY simpler and easier to follow, while providing almost all the same functionality
 
 ### Dependency inversion / facade using interfaces
 
