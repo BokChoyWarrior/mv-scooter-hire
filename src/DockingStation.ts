@@ -1,7 +1,10 @@
 import { Location } from './Location';
 import { Scooter } from './Scooter';
-import { User } from './User';
 
+/**
+ * A physical docking/charging station which holds {@link Scooter scooters}. Has knowledge of which scooters are
+ * docked within it, as well as their availability status.
+ */
 export class DockingStation {
   static all: DockingStation[] = [];
 
@@ -9,19 +12,14 @@ export class DockingStation {
     DockingStation.all = [];
   }
 
-  /**
-   * Does what it says on the tin!
-   */
-  public static findNearestDockWithAvailableScooter(user: User): DockingStation | false {
-    const userLoc = user.location;
-
+  public static findNearestDockWithAvailableScooter(location: Location): DockingStation | false {
     let nearest: false | DockingStation = false;
     let lowestDistance = Infinity;
     for (let station of DockingStation.all) {
       if (station.numAvailableScooters < 1) {
         continue;
       }
-      let distance = station.location.distanceTo(user.location);
+      let distance = station.location.distanceTo(location);
       if (nearest === false || distance < lowestDistance) {
         lowestDistance = distance;
         nearest = station;
@@ -62,33 +60,7 @@ export class DockingStation {
   }
 
   // Methods
-  /**
-   * Automatically decides what to do whether supplied argument is a {@link User} or {@link Scooter}
-   *
-   * @param thing
-   */
-  dock(thing: User | Scooter, isBroken: boolean = false) {
-    if (thing instanceof User) {
-      this._userDock(thing, isBroken);
-    } else {
-      this._scooterDock(thing);
-    }
-  }
-
-  private _userDock(user: User, isBroken: boolean) {
-    if (!user.scooter) {
-      throw new Error("scooter not given - maybe the user doesn't have one assigned?");
-    }
-
-    this._scooterDock(user.scooter, isBroken);
-
-    const batteryUsed = 100 - user.scooter.batteryPercent;
-    user.previousScooter = user.scooter;
-    user.scooter = false;
-    user.takePayment(batteryUsed);
-  }
-
-  private _scooterDock(scooter: Scooter, isBroken: boolean = false) {
+  dock(scooter: Scooter, isBroken: boolean = false) {
     // add scooter to list of scooters
     this.scooters[scooter.id] = scooter;
     scooter.isHired = false;
@@ -105,30 +77,21 @@ export class DockingStation {
     }
   }
 
-  hire(user: User): Scooter {
-    if (user.balance <= 0) {
-      throw new Error('Insufficient balance');
-    }
+  hire() {
     if (this.numAvailableScooters === 0) {
       throw new Error('The station selected has no available scooters');
     }
-
-    // Choose a random scooter from availableScooters
     let scooterId;
     const Ids = Object.keys(this.availableScooters);
     scooterId = Ids[(Ids.length * Math.random()) << 0];
-
     const scooter = this.availableScooters[scooterId];
-    this.removeListeners(scooter);
-    this._assign(scooter, user);
-    scooter.isHired = true;
-    return scooter;
-  }
 
-  private _assign(scooter: Scooter, user: User) {
-    delete this.scooters[scooter.id];
-    delete this.availableScooters[scooter.id];
-    user.scooter = scooter;
+    this.removeListeners(scooter);
+    delete this.scooters[scooterId];
+    delete this.availableScooters[scooterId];
+    scooter.isHired = true;
+
+    return scooter;
   }
 
   addListeners(scooter: Scooter) {

@@ -1,5 +1,8 @@
 import { EventEmitter } from 'node:events';
 
+/**
+ * Simply a physical {@link Scooter}. Has no knowledge of a {@link User} or {@link Dockingstation}
+ */
 export class Scooter {
   // Static
   static all: Scooter[] = [];

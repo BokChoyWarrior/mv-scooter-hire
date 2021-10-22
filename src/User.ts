@@ -2,8 +2,11 @@ import { Location } from '../src/Location';
 import { DockingStation } from '../src/DockingStation';
 import { Scooter } from '../src/Scooter';
 
-// DockingStation class will *mostly* act as the "app" and the user will interact with the "app" via DockingStation
-// This should really be all in it's own "App" class, but the proogram is already complicated enough as-is!
+/**
+ * The {@link User} class represents an actual user: what they can do on the app as well as the
+ * physical world.
+ *
+ */
 export class User {
   // Statics
   static all: User[] = [];
@@ -32,18 +35,36 @@ export class User {
 
   // Methods
   findNearestAvailableStation() {
-    return DockingStation.findNearestDockWithAvailableScooter(this);
+    return DockingStation.findNearestDockWithAvailableScooter(this.location);
   }
 
-  hireFrom(station: DockingStation) {
-    return station.hire(this);
+  hireFrom(station: DockingStation): Scooter {
+    if (this.balance <= 0) {
+      throw new Error('Insufficient balance');
+    }
+    if (!!this.scooter) {
+      throw new Error('User already has a scooter');
+    }
+
+    const scooter = station.hire();
+
+    this.scooter = scooter;
+
+    return scooter;
   }
 
-  dock(station: DockingStation, isBroken: boolean) {
-    station.dock(this, isBroken);
+  dock(station: DockingStation, isBroken: boolean = false) {
+    if (!this.scooter) {
+      throw new Error(`User ${this.name} doesn't have a scooter to dock!`);
+    }
+    const batteryUsed = 100 - this.scooter.batteryPercent;
+    this._takePayment(batteryUsed);
+    station.dock(this.scooter, isBroken);
+    this.previousScooter = this.scooter;
+    this.scooter = false;
   }
 
-  takePayment(batteryUsed: number) {
+  _takePayment(batteryUsed: number) {
     this.balance -= batteryUsed * 10;
     return this.balance;
   }

@@ -4,8 +4,6 @@ import { User } from '../src/User';
 import { DockingStation } from '../src/DockingStation';
 import { Scooter } from '../src/Scooter';
 
-let users, scooters, stations;
-
 function teardownMockEnvironment() {
   Scooter.removeAll();
   User.removeAll();
@@ -22,7 +20,7 @@ describe('the User (and Person) class', () => {
     jest.useRealTimers();
   });
 
-  it('the user can register', () => {
+  it('can register', () => {
     let person = new Person('harv', 55, new Location());
     let user = person.register();
     expect(user).toBeInstanceOf(User);
@@ -33,7 +31,7 @@ describe('the User (and Person) class', () => {
     expect(() => underage.register()).toThrowError();
   });
 
-  it('the user can hire/dock a scooter', async () => {
+  it('can hire/dock a scooter', async () => {
     const station = new DockingStation(new Location());
     const s1 = new Scooter();
     const user = new User('1', 100, new Location());
@@ -56,10 +54,10 @@ describe('the User (and Person) class', () => {
     //wait 0.2 secs (or 0.2 hours)
     jest.advanceTimersByTime(2000);
     expect(scooter.batteryPercent).toBeLessThan(100);
-    nearest.dock(user);
+    user.dock(nearest);
   });
 
-  it("the user can return the scooter to a station, and money will be taken form user's account", async () => {
+  it("can return the scooter to a station, and money will be taken form user's account", async () => {
     const station = new DockingStation(new Location());
     const s1 = new Scooter();
     station.dock(s1);
@@ -73,7 +71,7 @@ describe('the User (and Person) class', () => {
     expect(user.balance).toBeLessThan(prevBalance);
   });
 
-  it('the user cannot hire if they have no balance', () => {
+  it('cannot hire if they have no balance', () => {
     const station = new DockingStation(new Location());
     const s1 = new Scooter();
     station.dock(s1);
@@ -82,6 +80,16 @@ describe('the User (and Person) class', () => {
     expect(() => user.hireFrom(station)).toThrow();
   });
 
+  it('cannot hire if they already have a scooter', () => {
+    const station = new DockingStation(new Location());
+    const s1 = new Scooter();
+    const s2 = new Scooter();
+    station.dock(s1);
+    station.dock(s2);
+    const user = new User('test', 48930242, new Location());
+    user.hireFrom(station);
+    expect(() => user.hireFrom(station)).toThrow();
+  });
   it('the user can mark a scooter as broken, (and can contact team to get a refund NYI)', () => {
     const station = new DockingStation(new Location());
     const s1 = new Scooter();

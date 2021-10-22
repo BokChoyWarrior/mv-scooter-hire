@@ -99,7 +99,6 @@ describe('the Scooter class', () => {
   it('should charge while docked', () => {
     const station = new DockingStation(new Location());
     const scooter = new Scooter();
-    const user = new User('1', 100, new Location());
 
     scooter.batteryPercent = 1;
 
@@ -154,5 +153,17 @@ describe('the Scooter class', () => {
     expect(scooter.isHired).toBe(true);
     user.dock(station, false);
     expect(scooter.isHired).toBe(false);
+  });
+
+  it('should not discharge while docked, even if asked', async () => {
+    const station = new DockingStation(new Location());
+    const scooter = new Scooter();
+    station.dock(scooter);
+
+    scooter.discharge();
+    // wait half an hour to see
+    jest.advanceTimersByTime(500);
+
+    expect(scooter.batteryPercent).toBe(100);
   });
 });
