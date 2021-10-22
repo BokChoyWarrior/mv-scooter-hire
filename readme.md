@@ -32,7 +32,7 @@ const nearest = user1.findNearestAvailableStation();
 console.log(nearest.location); // { x: 1, y: 1}
 
 user1.hireFrom(nearest);
-console.log(user1.scooter.id);
+console.log(user1.scooter.id); // 0, since he hired scooter1
 
 // . . .
 const broken = true;

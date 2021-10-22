@@ -21,12 +21,13 @@ const nearest = user1.findNearestAvailableStation();
 console.log(nearest.location); // { x: 1, y: 1}
 
 user1.hireFrom(nearest);
-console.log(user1.scooter.id);
+console.log(user1.scooter.id); // 0, since he hired scooter1
 
 // . . .
 const broken = true;
 user1.dock(station2, broken);
 
+console.log('\nTesting without user:\n');
 /*
   ==========================================================================
   For testing sake, you can also bypass the whole user object by
@@ -38,9 +39,11 @@ const station3 = new DockingStation(new Location());
 
 scoot3.batteryPercent = 0;
 station3.dock(scoot3);
-console.log(scoot3.chargingPromise);
+
+console.log(scoot3.chargingPromise); // Promise { <pending> } - since the scooter begins to charge once it is docked
+
 (async () => {
   scoot3.chargingPromise.then(() => {
-    console.log(scoot3.batteryPercent);
+    console.log(scoot3.batteryPercent); // 100
   });
 })(); // IIFE to use async in the base file
